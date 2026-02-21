@@ -1,0 +1,57 @@
+services:
+  migrator: &backend_base
+    build: .
+    command: python manage.py migrate
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - statics:/srv/static
+    depends_on:
+      db:
+        condition: service_healthy
+
+  statics:
+    <<: *backend_base
+    command: python manage.py collectstatic --noinput
+
+  web:
+    <<: *backend_base
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --reload
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      statics:
+        condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-api_gateway}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  statics:
