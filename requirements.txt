@@ -1,0 +1,17 @@
+asgiref==3.11.1
+certifi==2026.1.4
+charset-normalizer==3.4.4
+coverage==7.13.4
+Django==6.0.2
+django-redis==6.0.0
+djangorestframework==3.16.1
+easy_env_var==1.2.0
+gunicorn==25.1.0
+idna==3.11
+packaging==26.0
+psycopg==3.3.3
+redis==7.2.0
+requests==2.32.5
+ruff==0.15.2
+sqlparse==0.5.5
+urllib3==2.6.3
